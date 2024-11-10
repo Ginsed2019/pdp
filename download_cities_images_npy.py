@@ -61,6 +61,22 @@ def get_ee_sentinel_2(from_date, to_date, ee_geometry):
     res = res.filterBounds(ee_geometry).mean()
     return res
 
+def mask_night_clouds(image):
+    # Select the cloud-free coverage band
+    qa = image.select('cf_cvg')
+    # Define a threshold for minimum cloud-free observations
+    cloud_free_threshold = 50
+    # Mask out pixels with low cloud-free observation counts
+    cloud_free_mask = qa.lt(cloud_free_threshold)
+    return image.updateMask(cloud_free_mask)
+
+def get_ee_night(from_date, to_date, ee_geometry):
+    res = ee.ImageCollection('NOAA/VIIRS/DNB/MONTHLY_V1/VCMCFG')
+    res = res.filterDate(from_date, to_date)
+    res = res.map(mask_night_clouds)
+    res = res.filterBounds(ee_geometry).mean()
+    return res
+
 def get_ee_pop(ee_geometry):
     res = ee.FeatureCollection('projects/ginsed2019/assets/pop_density_per_100_m_x_100_m')
     res = res.reduceToImage(properties = ['POP'], reducer = ee.Reducer.mean())
@@ -99,13 +115,14 @@ b8a = []
 b9 = []
 b11 = []
 b12 = []
+night = []
 
 i = 0
 for area in areas:
     print(i)
     i = i + 1
     popp = gee_image_to_np_iamge(get_ee_pop(area), area, scale)
-    # plt.imshow(pop['mean'])
+    # plt.imshow(popp['mean'])
     se1 = gee_image_to_np_iamge(get_ee_sentinel_1('2021-06-01', '2021-09-01', area), area, scale)
     # plt.imshow(se1['VV'])
     # plt.imshow(se1['VH'])
@@ -122,6 +139,8 @@ for area in areas:
     # plt.imshow(se2['B9'])
     # plt.imshow(se2['B11'])
     # plt.imshow(se2['B12'])
+    nigh = gee_image_to_np_iamge(get_ee_night('2021-12-01', '2022-03-01', area), area, scale)
+    # plt.imshow(np.log1p(nigh['avg_rad']))
     
     pop.append(take_500(popp['mean']))
     vv.append(take_500(se1['VV']))
@@ -138,6 +157,7 @@ for area in areas:
     b9.append(take_500(se2['B9']))
     b11.append(take_500(se2['B11']))
     b12.append(take_500(se2['B12']))
+    night.append(take_500(nigh['avg_rad']))
 
 np.save('data/pop.npy', np.array(pop))
 np.save('data/vv.npy', np.array(vv))
@@ -154,6 +174,7 @@ np.save('data/b8a.npy', np.array(b8a))
 np.save('data/b9.npy', np.array(b9))
 np.save('data/b11.npy', np.array(b11))
 np.save('data/b12.npy', np.array(b12))
+np.save('data/night.npy', np.array(night))
 
 np.save('data/areas.npy', np.array(areass))
 
