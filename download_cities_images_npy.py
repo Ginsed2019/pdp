@@ -82,6 +82,10 @@ def get_ee_pop(ee_geometry):
     res = res.reduceToImage(properties = ['POP'], reducer = ee.Reducer.mean())
     return res
 
+def get_ee_ghs_pop_2021():
+    res = ee.Image('JRC/GHSL/P2023A/GHS_POP/2020');
+    return res
+
 def normalize_2d(array):
     max_ = array.max()
     min_ = array.min()
@@ -116,17 +120,18 @@ b9 = []
 b11 = []
 b12 = []
 night = []
+ghspop = []
 
 i = 0
 for area in areas:
     print(i)
     i = i + 1
-    popp = gee_image_to_np_iamge(get_ee_pop(area), area, scale)
+    # popp = gee_image_to_np_iamge(get_ee_pop(area), area, scale)
     # plt.imshow(popp['mean'])
-    se1 = gee_image_to_np_iamge(get_ee_sentinel_1('2021-06-01', '2021-09-01', area), area, scale)
+    # se1 = gee_image_to_np_iamge(get_ee_sentinel_1('2021-06-01', '2021-09-01', area), area, scale)
     # plt.imshow(se1['VV'])
     # plt.imshow(se1['VH'])
-    se2 = gee_image_to_np_iamge(get_ee_sentinel_2('2021-06-01', '2021-09-01', area), area, scale, ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12'])
+    # se2 = gee_image_to_np_iamge(get_ee_sentinel_2('2021-06-01', '2021-09-01', area), area, scale, ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B8A', 'B9', 'B11', 'B12'])
     # plt.imshow(se2['B1'])
     # plt.imshow(se2['B2'])
     # plt.imshow(se2['B3'])
@@ -139,25 +144,28 @@ for area in areas:
     # plt.imshow(se2['B9'])
     # plt.imshow(se2['B11'])
     # plt.imshow(se2['B12'])
-    nigh = gee_image_to_np_iamge(get_ee_night('2021-12-01', '2022-03-01', area), area, scale)
+    # nigh = gee_image_to_np_iamge(get_ee_night('2021-12-01', '2022-03-01', area), area, scale)
     # plt.imshow(np.log1p(nigh['avg_rad']))
+    ghs = gee_image_to_np_iamge(get_ee_ghs_pop_2021(), area, scale)
+    # plt.imshow(np.log1p(ghs['population_count']))
     
-    pop.append(take_500(popp['mean']))
-    vv.append(take_500(se1['VV']))
-    vh.append(take_500(se1['VH']))
-    b1.append(take_500(se2['B1']))
-    b2.append(take_500(se2['B2']))
-    b3.append(take_500(se2['B3']))
-    b4.append(take_500(se2['B4']))
-    b5.append(take_500(se2['B5']))
-    b6.append(take_500(se2['B6']))
-    b7.append(take_500(se2['B7']))
-    b8.append(take_500(se2['B8']))
-    b8a.append(take_500(se2['B8A']))
-    b9.append(take_500(se2['B9']))
-    b11.append(take_500(se2['B11']))
-    b12.append(take_500(se2['B12']))
-    night.append(take_500(nigh['avg_rad']))
+    # pop.append(take_500(popp['mean']))
+    # vv.append(take_500(se1['VV']))
+    # vh.append(take_500(se1['VH']))
+    # b1.append(take_500(se2['B1']))
+    # b2.append(take_500(se2['B2']))
+    # b3.append(take_500(se2['B3']))
+    # b4.append(take_500(se2['B4']))
+    # b5.append(take_500(se2['B5']))
+    # b6.append(take_500(se2['B6']))
+    # b7.append(take_500(se2['B7']))
+    # b8.append(take_500(se2['B8']))
+    # b8a.append(take_500(se2['B8A']))
+    # b9.append(take_500(se2['B9']))
+    # b11.append(take_500(se2['B11']))
+    # b12.append(take_500(se2['B12']))
+    # night.append(take_500(nigh['avg_rad']))
+    ghspop.append(take_500(ghs['population_count']))
 
 np.save('data/pop.npy', np.array(pop))
 np.save('data/vv.npy', np.array(vv))
@@ -175,6 +183,7 @@ np.save('data/b9.npy', np.array(b9))
 np.save('data/b11.npy', np.array(b11))
 np.save('data/b12.npy', np.array(b12))
 np.save('data/night.npy', np.array(night))
+np.save('data/ghspop.npy', np.array(ghspop))
 
 np.save('data/areas.npy', np.array(areass))
 
